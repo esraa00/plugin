@@ -34,7 +34,7 @@ registerBlockType(metadata.name, {
    */
   example: {
     attributes: {
-      message: "Gutenpride",
+      allowedBlocksNumber: 1,
     },
   },
   /**

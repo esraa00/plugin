@@ -1,3 +1,12 @@
+import {
+  useBlockProps,
+  InspectorControls,
+  InnerBlocks,
+  useInnerBlocksProps,
+} from "@wordpress/block-editor";
+import { PanelBody, RadioControl } from "@wordpress/components";
+import { useSelect } from "@wordpress/data";
+
 /**
  * WordPress components that create the necessary UI elements for the block
  *
@@ -10,7 +19,6 @@
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import { useBlockProps, InnerBlocks } from "@wordpress/block-editor";
 
 /**
  * The edit function describes the structure of your block in the context of the
@@ -25,16 +33,55 @@ import { useBlockProps, InnerBlocks } from "@wordpress/block-editor";
  * @return {WPElement} Element to render.
  */
 
-export default function Edit({ attributes, setAttributes }) {
-  const blockProps = useBlockProps();
-  return (
-    <div {...blockProps}>
-      <InnerBlocks
-        template={[
-          ["core/paragraph", {}],
-          ["core/image", {}],
-        ]}
-      />
-    </div>
-  );
+const decide = (allowedBlocksCount, innerBlocks) => {
+  const innerBlocksCount = innerBlocks.length;
+  if (innerBlocksCount > allowedBlocksCount) {
+    const blocksToBeDeleted = innerBlocks.slice(allowedBlocksCount);
+    const clientIds = blocksToBeDeleted.map((block) => block.clientId);
+    wp.data.dispatch("core/editor").removeBlocks(clientIds);
+    return <InnerBlocks renderAppender={() => false} />;
+  } else if (innerBlocksCount < allowedBlocksCount) {
+    return (
+      <InnerBlocks renderAppender={() => <InnerBlocks.ButtonBlockAppender />} />
+    );
+  } else {
+    return <InnerBlocks renderAppender={() => false} />;
+  }
+};
+
+export default function Edit({ attributes, setAttributes, clientId }) {
+  try {
+    const blockProps = useBlockProps();
+    const innerBlocks = useSelect(
+      (select) => select("core/block-editor").getBlock(clientId).innerBlocks
+    );
+    return (
+      <>
+        <InspectorControls>
+          <PanelBody title="Allowed Blocks Number">
+            <RadioControl
+              label="Select allowed blocks number"
+              selected={
+                attributes.allowedBlocksNumber ||
+                setAttributes({ allowedBlocksNumber: Number(1) })
+              }
+              options={[
+                { label: 1, value: 1 },
+                { label: 2, value: 2 },
+                { label: 3, value: 3 },
+              ]}
+              onChange={(value) =>
+                setAttributes({ allowedBlocksNumber: Number(value) })
+              }
+            />
+          </PanelBody>
+        </InspectorControls>
+        <div {...blockProps}>
+          {decide(attributes.allowedBlocksNumber, innerBlocks)}
+        </div>
+      </>
+    );
+  } catch (error) {
+    console.log(error);
+  }
 }

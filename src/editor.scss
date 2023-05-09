@@ -5,8 +5,6 @@
  */
 .wp-block-create-block-gutenpride {
   display: flex;
+  align-items: center;
   flex-direction: row;
-}
-.wp-block-create-block-gutenpride > * {
-  flex-basis: 50%;
 }

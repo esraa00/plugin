@@ -17,6 +17,11 @@
   font-size: 14px;
   display: flex;
   flex-direction: row;
+  align-items: center;
+}
+
+.wp-block-create-block-gutenpride > * {
+  flex-basis: 50%;
 }
 
 /*# sourceMappingURL=style-index.css.map*/
