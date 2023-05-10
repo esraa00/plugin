@@ -51,24 +51,22 @@ __webpack_require__.r(__webpack_exports__);
  * @return {WPElement} Element to render.
  */
 
-const decide = (allowedBlocksCount, innerBlocks) => {
+const appenderToRender = (allowedBlocksCount, clientId) => {
+  const innerBlocks = (0,_wordpress_data__WEBPACK_IMPORTED_MODULE_3__.useSelect)(select => select("core/block-editor").getBlock(clientId).innerBlocks);
   const innerBlocksCount = innerBlocks.length;
   if (innerBlocksCount > allowedBlocksCount) {
-    const blocksToBeDeleted = innerBlocks.slice(allowedBlocksCount);
-    const clientIds = blocksToBeDeleted.map(block => block.clientId);
-    wp.data.dispatch("core/editor").removeBlocks(clientIds);
-    return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks, {
-      renderAppender: () => false
-    });
+    removeBlocksFromInnerBlocks(allowedBlocksCount, innerBlocks);
+    return false;
   } else if (innerBlocksCount < allowedBlocksCount) {
-    return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks, {
-      renderAppender: () => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks.ButtonBlockAppender, null)
-    });
+    return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks.ButtonBlockAppender, null);
   } else {
-    return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks, {
-      renderAppender: () => false
-    });
+    return false;
   }
+};
+const removeBlocksFromInnerBlocks = (allowedBlocksCount, innerBlocks) => {
+  const blocksToBeDeleted = innerBlocks.slice(allowedBlocksCount);
+  const clientIds = blocksToBeDeleted.map(block => block.clientId);
+  wp.data.dispatch("core/editor").removeBlocks(clientIds);
 };
 function Edit(_ref) {
   let {
@@ -99,7 +97,11 @@ function Edit(_ref) {
       onChange: value => setAttributes({
         allowedBlocksNumber: Number(value)
       })
-    }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", blockProps, decide(attributes.allowedBlocksNumber, innerBlocks)));
+    }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", blockProps, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InnerBlocks, {
+      renderAppender: () => appenderToRender(attributes.allowedBlocksNumber,
+      // innerBlocks,
+      clientId)
+    })));
   } catch (error) {
     console.log(error);
   }

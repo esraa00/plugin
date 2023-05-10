@@ -33,20 +33,25 @@ import { useSelect } from "@wordpress/data";
  * @return {WPElement} Element to render.
  */
 
-const decide = (allowedBlocksCount, innerBlocks) => {
+const appenderToRender = (allowedBlocksCount, clientId) => {
+  const innerBlocks = useSelect(
+    (select) => select("core/block-editor").getBlock(clientId).innerBlocks
+  );
   const innerBlocksCount = innerBlocks.length;
   if (innerBlocksCount > allowedBlocksCount) {
-    const blocksToBeDeleted = innerBlocks.slice(allowedBlocksCount);
-    const clientIds = blocksToBeDeleted.map((block) => block.clientId);
-    wp.data.dispatch("core/editor").removeBlocks(clientIds);
-    return <InnerBlocks renderAppender={() => false} />;
+    removeBlocksFromInnerBlocks(allowedBlocksCount, innerBlocks);
+    return false;
   } else if (innerBlocksCount < allowedBlocksCount) {
-    return (
-      <InnerBlocks renderAppender={() => <InnerBlocks.ButtonBlockAppender />} />
-    );
+    return <InnerBlocks.ButtonBlockAppender />;
   } else {
-    return <InnerBlocks renderAppender={() => false} />;
+    return false;
   }
+};
+
+const removeBlocksFromInnerBlocks = (allowedBlocksCount, innerBlocks) => {
+  const blocksToBeDeleted = innerBlocks.slice(allowedBlocksCount);
+  const clientIds = blocksToBeDeleted.map((block) => block.clientId);
+  wp.data.dispatch("core/editor").removeBlocks(clientIds);
 };
 
 export default function Edit({ attributes, setAttributes, clientId }) {
@@ -77,7 +82,15 @@ export default function Edit({ attributes, setAttributes, clientId }) {
           </PanelBody>
         </InspectorControls>
         <div {...blockProps}>
-          {decide(attributes.allowedBlocksNumber, innerBlocks)}
+          <InnerBlocks
+            renderAppender={() =>
+              appenderToRender(
+                attributes.allowedBlocksNumber,
+                // innerBlocks,
+                clientId
+              )
+            }
+          ></InnerBlocks>
         </div>
       </>
     );
